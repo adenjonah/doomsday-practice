@@ -273,27 +273,50 @@ class DoomsdayQuiz {
             explanation += `<div class="step">% 7 = ${finalDay}</div>`;
             explanation += `<div class="step"><strong>Final answer:</strong> ${finalDayName} (${finalDay})</div>`;
         } else {
-            // For other years, add century and year adjustments
-            const yearCalc = this.calculateYearDoomsday(year);
+            // For other years, use full Doomsday algorithm with century anchor days
             const centuryAdj = this.getCenturyAdjustment(year);
+            const yearCalc = this.calculateYearDoomsday(year);
             const yearAdj = yearCalc.yearValue;
+            const dayMod7 = day % 7;
             
             // Check for leap year adjustment
             const isLeapYear = this.isLeapYear(year);
             const needsLeapAdjustment = isLeapYear && (month === 1 || month === 2);
             const leapAdjustment = needsLeapAdjustment ? -1 : 0;
             
-            const total = monthInfo.value + day + centuryAdj + yearAdj + leapAdjustment;
+            const total = monthInfo.value + dayMod7 + centuryAdj + yearAdj + leapAdjustment;
             const finalDay = total % 7;
             const finalDayName = dayNames[finalDay];
             
-            explanation += `<div class="step"><strong>Year calculation:</strong><br>${yearCalc.explanation}</div>`;
+            // Get century name for display
+            const century = Math.floor(year / 100);
+            const centuryName = this.getCenturyName(century);
+            
+            explanation += `<div class="step"><strong>Step 1:</strong> ${monthInfo.name} adjustment = ${monthInfo.value}</div>`;
+            
+            // Only show mod 7 for days >= 7 or when day is exactly 7
+            if (day >= 7) {
+                if (day === 7) {
+                    explanation += `<div class="step"><strong>Step 2:</strong> Day adjustment +${day} (${day}%7 = 0)</div>`;
+                } else {
+                    explanation += `<div class="step"><strong>Step 2:</strong> Day adjustment +${day} (or ${dayMod7} after % 7)</div>`;
+                }
+            } else {
+                explanation += `<div class="step"><strong>Step 2:</strong> Day adjustment +${day}</div>`;
+            }
+            
+            explanation += `<div class="step"><strong>Step 3:</strong> Century anchor (${century}00s) = +${centuryAdj} (${centuryName})</div>`;
+            explanation += `<div class="step"><strong>Step 4:</strong> Year calculation (${year % 100}): ${yearCalc.explanation}</div>`;
             
             if (needsLeapAdjustment) {
-                explanation += `<div class="step"><strong>Calculation:</strong><br>${monthInfo.value} (${monthInfo.name}) + ${day} (day) + ${centuryAdj} (century) + ${yearAdj} (year) - 1 (leap year Jan/Feb) = ${total}<br>${total} mod 7 = ${finalDay} = ${finalDayName}</div>`;
+                explanation += `<div class="step"><strong>Step 5:</strong> Leap year adjustment = -1 (${year} is a leap year and month is Jan/Feb)</div>`;
+                explanation += `<div class="step"><strong>Step 6:</strong> ${monthInfo.value} + ${dayMod7} + ${centuryAdj} + ${yearAdj} - 1 = ${total}</div>`;
             } else {
-                explanation += `<div class="step"><strong>Calculation:</strong><br>${monthInfo.value} (${monthInfo.name}) + ${day} (day) + ${centuryAdj} (century) + ${yearAdj} (year) = ${total}<br>${total} mod 7 = ${finalDay} = ${finalDayName}</div>`;
+                explanation += `<div class="step"><strong>Step 5:</strong> ${monthInfo.value} + ${dayMod7} + ${centuryAdj} + ${yearAdj} = ${total}</div>`;
             }
+            
+            explanation += `<div class="step">% 7 = ${finalDay}</div>`;
+            explanation += `<div class="step"><strong>Final answer:</strong> ${finalDayName} (${finalDay})</div>`;
         }
         
         explanation += `</div>`;
@@ -343,6 +366,12 @@ class DoomsdayQuiz {
         else if (century === 20) return 6;
         else if (century === 21) return 4;
         else return 0; // Default for other centuries
+    }
+
+    getCenturyName(century) {
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const centuryAdjustment = this.getCenturyAdjustment(century * 100);
+        return dayNames[centuryAdjustment];
     }
 
     isLeapYear(year) {
