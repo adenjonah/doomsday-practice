@@ -49,6 +49,8 @@ class DoomsdayQuiz {
         this.monthHintDropdown = document.getElementById('monthHintDropdown');
         this.yearHintBtn = document.getElementById('yearHintBtn');
         this.yearHintDropdown = document.getElementById('yearHintDropdown');
+        this.centuryHintBtn = document.getElementById('centuryHintBtn');
+        this.centuryHintDropdown = document.getElementById('centuryHintDropdown');
 
         // Mobile elements
         this.mobileMenuBtn = document.getElementById('mobileMenuBtn');
@@ -62,6 +64,8 @@ class DoomsdayQuiz {
         this.mobileMonthHintDropdown = document.getElementById('mobileMonthHintDropdown');
         this.mobileYearHintBtn = document.getElementById('mobileYearHintBtn');
         this.mobileYearHintDropdown = document.getElementById('mobileYearHintDropdown');
+        this.mobileCenturyHintBtn = document.getElementById('mobileCenturyHintBtn');
+        this.mobileCenturyHintDropdown = document.getElementById('mobileCenturyHintDropdown');
 
         // Mobile stats elements
         this.mobileTotal = document.getElementById('mobileTotal');
@@ -102,10 +106,12 @@ class DoomsdayQuiz {
         // Hint listeners
         this.monthHintBtn.addEventListener('click', () => this.toggleHint('month'));
         this.yearHintBtn.addEventListener('click', () => this.toggleHint('year'));
+        this.centuryHintBtn.addEventListener('click', () => this.toggleHint('century'));
 
         // Mobile hint listeners
         this.mobileMonthHintBtn.addEventListener('click', () => this.toggleMobileHint('month'));
         this.mobileYearHintBtn.addEventListener('click', () => this.toggleMobileHint('year'));
+        this.mobileCenturyHintBtn.addEventListener('click', () => this.toggleMobileHint('century'));
 
         // Mobile sidebar listeners
         this.mobileMenuBtn.addEventListener('click', () => this.openSidebar());
@@ -284,7 +290,7 @@ class DoomsdayQuiz {
             const needsLeapAdjustment = isLeapYear && (month === 1 || month === 2);
             const leapAdjustment = needsLeapAdjustment ? -1 : 0;
             
-            const total = monthInfo.value + dayMod7 + centuryAdj + yearAdj + leapAdjustment;
+            const total = monthInfo.value + dayMod7 + centuryAdj - yearAdj + leapAdjustment;
             const finalDay = total % 7;
             const finalDayName = dayNames[finalDay];
             
@@ -310,9 +316,9 @@ class DoomsdayQuiz {
             
             if (needsLeapAdjustment) {
                 explanation += `<div class="step"><strong>Step 5:</strong> Leap year adjustment = -1 (${year} is a leap year and month is Jan/Feb)</div>`;
-                explanation += `<div class="step"><strong>Step 6:</strong> ${monthInfo.value} + ${dayMod7} + ${centuryAdj} + ${yearAdj} - 1 = ${total}</div>`;
+                explanation += `<div class="step"><strong>Step 6:</strong> ${monthInfo.value} + ${dayMod7} + ${centuryAdj} - ${yearAdj} - 1 = ${total}</div>`;
             } else {
-                explanation += `<div class="step"><strong>Step 5:</strong> ${monthInfo.value} + ${dayMod7} + ${centuryAdj} + ${yearAdj} = ${total}</div>`;
+                explanation += `<div class="step"><strong>Step 5:</strong> ${monthInfo.value} + ${dayMod7} + ${centuryAdj} - ${yearAdj} = ${total}</div>`;
             }
             
             explanation += `<div class="step">% 7 = ${finalDay}</div>`;
@@ -360,11 +366,13 @@ class DoomsdayQuiz {
 
     getCenturyAdjustment(year) {
         const century = Math.floor(year / 100);
-        if (century === 17) return 4;
-        else if (century === 18) return 2;
-        else if (century === 19) return 0;
-        else if (century === 20) return 6;
-        else if (century === 21) return 4;
+        // Wikipedia Doomsday rule century anchor days
+        if (century === 16) return 2; // 1600s: Tuesday  
+        else if (century === 17) return 0; // 1700s: Sunday
+        else if (century === 18) return 5; // 1800s: Friday
+        else if (century === 19) return 3; // 1900s: Wednesday
+        else if (century === 20) return 2; // 2000s: Tuesday
+        else if (century === 21) return 0; // 2100s: Sunday
         else return 0; // Default for other centuries
     }
 
@@ -654,12 +662,19 @@ class DoomsdayQuiz {
             if (!isVisible) {
                 this.yearHintDropdown.classList.add('show');
             }
+        } else if (type === 'century') {
+            const isVisible = this.centuryHintDropdown.classList.contains('show');
+            this.closeAllHints();
+            if (!isVisible) {
+                this.centuryHintDropdown.classList.add('show');
+            }
         }
     }
 
     closeAllHints() {
         this.monthHintDropdown.classList.remove('show');
         this.yearHintDropdown.classList.remove('show');
+        this.centuryHintDropdown.classList.remove('show');
     }
 
     // Mobile functionality
@@ -688,12 +703,19 @@ class DoomsdayQuiz {
             if (!isVisible) {
                 this.mobileYearHintDropdown.classList.add('show');
             }
+        } else if (type === 'century') {
+            const isVisible = this.mobileCenturyHintDropdown.classList.contains('show');
+            this.closeAllMobileHints();
+            if (!isVisible) {
+                this.mobileCenturyHintDropdown.classList.add('show');
+            }
         }
     }
 
     closeAllMobileHints() {
         this.mobileMonthHintDropdown.classList.remove('show');
         this.mobileYearHintDropdown.classList.remove('show');
+        this.mobileCenturyHintDropdown.classList.remove('show');
     }
 
     // Statistics reset functionality
