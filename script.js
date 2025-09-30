@@ -846,10 +846,16 @@ class DoomsdayQuiz {
             case '5': // Friday
             case '6': // Saturday
             case '7': // Sunday
+            case '0': // Sunday (alternative)
                 e.preventDefault();
                 // Only allow if answer buttons are enabled and question is active
                 if (this.answerButtons.style.display === 'block' && !this.dayButtons[0].disabled) {
-                    const dayIndex = parseInt(key) - 1; // Convert 1-7 to 0-6
+                    let dayIndex;
+                    if (key === '0') {
+                        dayIndex = 6; // Sunday (0 maps to index 6)
+                    } else {
+                        dayIndex = parseInt(key) - 1; // Convert 1-7 to 0-6
+                    }
                     const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
                     this.handleAnswer(dayNames[dayIndex]);
                 }
