@@ -210,7 +210,7 @@ h1 {
 }
 
 .date-display.faded {
-    opacity: 0.1;
+    opacity: 0;
 }
 
 .next-date-btn {
