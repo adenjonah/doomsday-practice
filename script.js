@@ -3,6 +3,7 @@ class DoomsdayQuiz {
         this.startYear = 1700;
         this.endYear = 2030;
         this.dateDisappear = false;
+        this.fadeDelay = 3; // seconds
         this.dateDisappearTimer = null;
         this.currentDate = null;
         this.startTime = null;
@@ -43,6 +44,7 @@ class DoomsdayQuiz {
         this.startYearInput = document.getElementById('startYear');
         this.endYearInput = document.getElementById('endYear');
         this.dateDisappearInput = document.getElementById('dateDisappear');
+        this.fadeDelayInput = document.getElementById('fadeDelay');
         this.applySettingsBtn = document.getElementById('applySettings');
         this.resetSettingsBtn = document.getElementById('resetSettings');
         this.cancelSettingsBtn = document.getElementById('cancelSettings');
@@ -421,7 +423,7 @@ class DoomsdayQuiz {
         if (this.dateDisappear) {
             this.dateDisappearTimer = setTimeout(() => {
                 this.dateDisplay.classList.add('faded');
-            }, 3000); // 3 seconds
+            }, this.fadeDelay * 1000); // Convert seconds to milliseconds
         }
         
         // Enable answer buttons
@@ -630,6 +632,7 @@ class DoomsdayQuiz {
         const newStartYear = parseInt(this.startYearInput.value);
         const newEndYear = parseInt(this.endYearInput.value);
         const newDateDisappear = this.dateDisappearInput.checked;
+        const newFadeDelay = parseFloat(this.fadeDelayInput.value);
         
         if (newStartYear >= newEndYear) {
             alert('Start year must be before end year!');
@@ -641,9 +644,15 @@ class DoomsdayQuiz {
             return;
         }
         
+        if (newFadeDelay < 0.5 || newFadeDelay > 60) {
+            alert('Fade delay must be between 0.5 and 60 seconds!');
+            return;
+        }
+        
         this.startYear = newStartYear;
         this.endYear = newEndYear;
         this.dateDisappear = newDateDisappear;
+        this.fadeDelay = newFadeDelay;
         
         this.saveSettings();
         this.resetSession();
@@ -654,16 +663,19 @@ class DoomsdayQuiz {
         this.startYear = 1700;
         this.endYear = 2030;
         this.dateDisappear = false;
+        this.fadeDelay = 3;
         this.startYearInput.value = this.startYear;
         this.endYearInput.value = this.endYear;
         this.dateDisappearInput.checked = this.dateDisappear;
+        this.fadeDelayInput.value = this.fadeDelay;
     }
 
     saveSettings() {
         const settings = {
             startYear: this.startYear,
             endYear: this.endYear,
-            dateDisappear: this.dateDisappear
+            dateDisappear: this.dateDisappear,
+            fadeDelay: this.fadeDelay
         };
         
         sessionStorage.setItem('doomsdayQuizSettings', JSON.stringify(settings));
@@ -677,12 +689,14 @@ class DoomsdayQuiz {
             this.startYear = data.startYear || 1700;
             this.endYear = data.endYear || 2030;
             this.dateDisappear = data.dateDisappear || false;
+            this.fadeDelay = data.fadeDelay || 3;
         }
         
         // Update UI elements
         this.startYearInput.value = this.startYear;
         this.endYearInput.value = this.endYear;
         this.dateDisappearInput.checked = this.dateDisappear;
+        this.fadeDelayInput.value = this.fadeDelay;
         
         // Load session after settings
         this.loadSession();

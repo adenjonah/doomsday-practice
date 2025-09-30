@@ -278,8 +278,12 @@
                 <div class="form-group checkbox-group">
                     <label for="dateDisappear">
                         <input type="checkbox" id="dateDisappear">
-                        Date Disappear (fades after 3 seconds)
+                        Date Disappear
                     </label>
+                </div>
+                <div class="form-group">
+                    <label for="fadeDelay">Fade Delay (seconds):</label>
+                    <input type="number" id="fadeDelay" min="1" max="60" value="3" step="0.5">
                 </div>
                 <div class="modal-buttons">
                     <button id="applySettings" class="btn-primary">Apply</button>
