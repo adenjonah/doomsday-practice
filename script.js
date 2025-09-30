@@ -95,6 +95,9 @@ class DoomsdayQuiz {
         this.resetStatsBtn.addEventListener('click', () => this.confirmResetStats());
         this.mobileResetStatsBtn.addEventListener('click', () => this.confirmResetStats());
 
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => this.handleKeyPress(e));
+
         // Settings listeners
         this.settingsBtn.addEventListener('click', () => this.openSettings());
         this.applySettingsBtn.addEventListener('click', () => this.applySettings());
@@ -813,6 +816,60 @@ class DoomsdayQuiz {
             this.feedback.textContent = '';
             this.feedback.className = 'feedback';
         }, 3000);
+    }
+
+    handleKeyPress(e) {
+        // Don't handle keyboard shortcuts if user is typing in an input field
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+            return;
+        }
+
+        // Don't handle if settings modal is open
+        if (this.settingsModal.style.display === 'block') {
+            return;
+        }
+
+        const key = e.key.toLowerCase();
+        
+        switch (key) {
+            case ' ': // Spacebar - Next Date
+                e.preventDefault(); // Prevent page scroll
+                if (!this.nextDateBtn.disabled) {
+                    this.startNewQuestion();
+                }
+                break;
+                
+            case '1': // Monday
+            case '2': // Tuesday
+            case '3': // Wednesday
+            case '4': // Thursday
+            case '5': // Friday
+            case '6': // Saturday
+            case '7': // Sunday
+                e.preventDefault();
+                // Only allow if answer buttons are enabled and question is active
+                if (this.answerButtons.style.display === 'block' && !this.dayButtons[0].disabled) {
+                    const dayIndex = parseInt(key) - 1; // Convert 1-7 to 0-6
+                    const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                    this.handleAnswer(dayNames[dayIndex]);
+                }
+                break;
+                
+            case 'v': // Show/Hide Explanation (for correct answers)
+                e.preventDefault();
+                const explanationButton = document.querySelector('.show-explanation-btn');
+                if (explanationButton) {
+                    explanationButton.click();
+                }
+                break;
+                
+            case 'g': // Discard Question
+                e.preventDefault();
+                if (this.discardBtn.style.display === 'inline-block') {
+                    this.discardQuestion();
+                }
+                break;
+        }
     }
 }
 
