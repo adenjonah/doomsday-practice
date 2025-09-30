@@ -2,6 +2,8 @@ class DoomsdayQuiz {
     constructor() {
         this.startYear = 1700;
         this.endYear = 2030;
+        this.dateDisappear = false;
+        this.dateDisappearTimer = null;
         this.currentDate = null;
         this.startTime = null;
         this.questionCount = 0;
@@ -40,6 +42,7 @@ class DoomsdayQuiz {
         this.settingsModal = document.getElementById('settingsModal');
         this.startYearInput = document.getElementById('startYear');
         this.endYearInput = document.getElementById('endYear');
+        this.dateDisappearInput = document.getElementById('dateDisappear');
         this.applySettingsBtn = document.getElementById('applySettings');
         this.resetSettingsBtn = document.getElementById('resetSettings');
         this.cancelSettingsBtn = document.getElementById('cancelSettings');
@@ -243,7 +246,7 @@ class DoomsdayQuiz {
         if (knownDoomsdays[year]) {
             // For 2003-2010, use the special format
             const doomsdayInfo = knownDoomsdays[year];
-            const dayMod7 = day % 7;
+            const dayMod7 = this.mod7(day);
             
             // Check for leap year adjustment
             const isLeapYear = this.isLeapYear(year);
@@ -251,7 +254,7 @@ class DoomsdayQuiz {
             const leapAdjustment = needsLeapAdjustment ? -1 : 0;
             
             const total = monthInfo.value + dayMod7 + doomsdayInfo.value + leapAdjustment;
-            const finalDay = total % 7;
+            const finalDay = this.mod7(total);
             const finalDayName = dayNames[finalDay];
             
             explanation += `<div class="step"><strong>Step 1:</strong> ${monthInfo.name} adjustment = ${monthInfo.value}</div>`;
@@ -283,7 +286,7 @@ class DoomsdayQuiz {
             const centuryAdj = this.getCenturyAdjustment(year);
             const yearCalc = this.calculateYearDoomsday(year);
             const yearAdj = yearCalc.yearValue;
-            const dayMod7 = day % 7;
+            const dayMod7 = this.mod7(day);
             
             // Check for leap year adjustment
             const isLeapYear = this.isLeapYear(year);
@@ -291,7 +294,7 @@ class DoomsdayQuiz {
             const leapAdjustment = needsLeapAdjustment ? -1 : 0;
             
             const total = monthInfo.value + dayMod7 + centuryAdj - yearAdj + leapAdjustment;
-            const finalDay = total % 7;
+            const finalDay = this.mod7(total);
             const finalDayName = dayNames[finalDay];
             
             // Get century name for display
@@ -352,7 +355,7 @@ class DoomsdayQuiz {
             steps.push(`Even, so no change: ${workingYear}`);
         }
         
-        const yearValue = workingYear % 7;
+        const yearValue = this.mod7(workingYear);
         steps.push(`Mod 7: ${yearValue}`);
         
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -389,6 +392,11 @@ class DoomsdayQuiz {
         return (year % 4 === 0) && (year % 100 !== 0 || year % 400 === 0);
     }
 
+    // Proper mathematical modulo that handles negatives correctly
+    mod7(n) {
+        return ((n % 7) + 7) % 7;
+    }
+
     startNewQuestion() {
         this.currentDate = this.generateRandomDate();
         this.questionCount++;
@@ -396,11 +404,25 @@ class DoomsdayQuiz {
         // Update UI
         this.questionCounter.textContent = `Question: ${this.questionCount}`;
         this.dateDisplay.textContent = this.formatDate(this.currentDate);
+        this.dateDisplay.classList.remove('faded'); // Ensure date is visible
         this.answerButtons.style.display = 'block';
         this.nextDateBtn.disabled = true;
         this.discardBtn.style.display = 'none';
         this.feedback.textContent = '';
         this.feedback.className = 'feedback';
+        
+        // Clear any existing date disappear timer
+        if (this.dateDisappearTimer) {
+            clearTimeout(this.dateDisappearTimer);
+            this.dateDisappearTimer = null;
+        }
+        
+        // Set up date disappear timer if enabled
+        if (this.dateDisappear) {
+            this.dateDisappearTimer = setTimeout(() => {
+                this.dateDisplay.classList.add('faded');
+            }, 3000); // 3 seconds
+        }
         
         // Enable answer buttons
         this.dayButtons.forEach(btn => btn.disabled = false);
@@ -412,6 +434,13 @@ class DoomsdayQuiz {
     handleAnswer(selectedDay) {
         const endTime = performance.now();
         const responseTime = endTime - this.startTime;
+        
+        // Clear date disappear timer and make date visible again
+        if (this.dateDisappearTimer) {
+            clearTimeout(this.dateDisappearTimer);
+            this.dateDisappearTimer = null;
+        }
+        this.dateDisplay.classList.remove('faded');
         
         // Disable answer buttons
         this.dayButtons.forEach(btn => btn.disabled = true);
@@ -600,6 +629,7 @@ class DoomsdayQuiz {
     applySettings() {
         const newStartYear = parseInt(this.startYearInput.value);
         const newEndYear = parseInt(this.endYearInput.value);
+        const newDateDisappear = this.dateDisappearInput.checked;
         
         if (newStartYear >= newEndYear) {
             alert('Start year must be before end year!');
@@ -613,6 +643,7 @@ class DoomsdayQuiz {
         
         this.startYear = newStartYear;
         this.endYear = newEndYear;
+        this.dateDisappear = newDateDisappear;
         
         this.saveSettings();
         this.resetSession();
@@ -622,14 +653,17 @@ class DoomsdayQuiz {
     resetSettings() {
         this.startYear = 1700;
         this.endYear = 2030;
+        this.dateDisappear = false;
         this.startYearInput.value = this.startYear;
         this.endYearInput.value = this.endYear;
+        this.dateDisappearInput.checked = this.dateDisappear;
     }
 
     saveSettings() {
         const settings = {
             startYear: this.startYear,
-            endYear: this.endYear
+            endYear: this.endYear,
+            dateDisappear: this.dateDisappear
         };
         
         sessionStorage.setItem('doomsdayQuizSettings', JSON.stringify(settings));
@@ -642,7 +676,13 @@ class DoomsdayQuiz {
             const data = JSON.parse(settings);
             this.startYear = data.startYear || 1700;
             this.endYear = data.endYear || 2030;
+            this.dateDisappear = data.dateDisappear || false;
         }
+        
+        // Update UI elements
+        this.startYearInput.value = this.startYear;
+        this.endYearInput.value = this.endYear;
+        this.dateDisappearInput.checked = this.dateDisappear;
         
         // Load session after settings
         this.loadSession();
