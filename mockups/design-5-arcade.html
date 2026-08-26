@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Doomsday — Arcade Drill</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy:#0A0E1A;
+    --panel:#121A2E;
+    --panel-2:#0F1626;
+    --cyan:#22E0FF;
+    --magenta:#FF3D9A;
+    --amber:#FFC24B;
+    --text:#EAF2FF;
+    --dim:#7C89A8;
+    --line:rgba(120,150,200,.16);
+    --grid:rgba(34,224,255,.05);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+
+  html,body{background:var(--navy);color:var(--text);font-family:"Rubik",system-ui,sans-serif}
+
+  body{
+    min-height:100vh;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    padding:clamp(14px,3vw,34px);
+    background:
+      radial-gradient(1100px 600px at 50% -10%, rgba(34,224,255,.10), transparent 60%),
+      radial-gradient(900px 700px at 100% 110%, rgba(255,61,154,.08), transparent 55%),
+      var(--navy);
+    position:relative;
+    overflow-x:hidden;
+  }
+
+  /* very light scanline + vignette overlay */
+  body::before{
+    content:"";
+    position:fixed;inset:0;pointer-events:none;z-index:9;
+    background:repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.14) 2px 3px);
+    mix-blend-mode:overlay;opacity:.5;
+  }
+  body::after{
+    content:"";
+    position:fixed;inset:0;pointer-events:none;z-index:8;
+    background:radial-gradient(120% 100% at 50% 40%, transparent 55%, rgba(0,0,0,.55) 100%);
+  }
+
+  .wrap{max-width:1240px;margin:0 auto;position:relative;z-index:1}
+
+  /* ---------- Header ---------- */
+  header.top{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:16px;margin-bottom:clamp(16px,3vw,26px);
+    flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand .logo{
+    width:44px;height:44px;border-radius:11px;
+    display:grid;place-items:center;
+    background:linear-gradient(150deg,#12233d,#0c1526);
+    border:1px solid rgba(34,224,255,.4);
+    box-shadow:0 0 0 1px rgba(34,224,255,.12) inset, 0 0 22px rgba(34,224,255,.22);
+    font-family:"Chakra Petch";font-weight:700;color:var(--cyan);
+    font-size:22px;text-shadow:0 0 14px rgba(34,224,255,.8);
+  }
+  .brand h1{
+    font-family:"Chakra Petch";font-weight:700;letter-spacing:.14em;
+    font-size:clamp(20px,3.2vw,28px);text-transform:uppercase;
+    color:var(--text);
+  }
+  .brand h1 span{color:var(--cyan);text-shadow:0 0 16px rgba(34,224,255,.55)}
+  .brand small{
+    display:block;font-family:"Chakra Petch";letter-spacing:.4em;
+    font-size:9px;color:var(--dim);text-transform:uppercase;margin-top:2px;
+  }
+  .settings{
+    display:inline-flex;align-items:center;gap:9px;
+    font-family:"Chakra Petch";font-weight:600;letter-spacing:.12em;
+    text-transform:uppercase;font-size:12px;color:var(--text);
+    padding:10px 16px;border-radius:10px;cursor:pointer;
+    background:var(--panel);border:1px solid var(--line);
+    transition:border-color .18s, box-shadow .18s, color .18s;
+  }
+  .settings svg{width:15px;height:15px}
+  .settings:hover{border-color:rgba(34,224,255,.5);box-shadow:0 0 18px rgba(34,224,255,.18);color:var(--cyan)}
+  .settings:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+
+  /* ---------- Marquee / LED readout ---------- */
+  .marquee{
+    position:relative;border-radius:18px;padding:clamp(20px,3.4vw,34px);
+    background:
+      linear-gradient(180deg, rgba(34,224,255,.05), transparent 40%),
+      var(--panel);
+    border:1px solid rgba(34,224,255,.22);
+    box-shadow:0 0 0 1px rgba(10,14,26,.6) inset, 0 24px 60px rgba(0,0,0,.5), 0 0 42px rgba(34,224,255,.06);
+    overflow:hidden;margin-bottom:18px;
+  }
+  .marquee::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0/100% 22px,
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/22px 100%;
+    mask:radial-gradient(120% 120% at 50% 0%, #000 40%, transparent 80%);
+  }
+  .marquee-head{
+    display:flex;align-items:center;justify-content:space-between;
+    position:relative;margin-bottom:16px;gap:12px;flex-wrap:wrap;
+  }
+  .tag{
+    font-family:"Chakra Petch";letter-spacing:.34em;font-size:10px;
+    text-transform:uppercase;color:var(--dim);
+    display:inline-flex;align-items:center;gap:9px;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--magenta);
+    box-shadow:0 0 12px var(--magenta);animation:pulse 1.8s ease-in-out infinite}
+  @keyframes pulse{50%{opacity:.35}}
+
+  .timer{
+    font-family:"Chakra Petch";font-weight:700;font-variant-numeric:tabular-nums;
+    font-size:clamp(20px,3vw,26px);color:var(--amber);
+    text-shadow:0 0 16px rgba(255,194,75,.6);letter-spacing:.06em;
+    display:inline-flex;align-items:baseline;gap:8px;
+  }
+  .timer .lab{font-size:9px;letter-spacing:.3em;color:var(--dim);text-shadow:none}
+
+  .prompt-lab{
+    position:relative;font-family:"Chakra Petch";letter-spacing:.32em;
+    font-size:11px;text-transform:uppercase;color:var(--cyan);
+    text-shadow:0 0 12px rgba(34,224,255,.4);margin-bottom:10px;
+  }
+  .led-date{
+    position:relative;
+    font-family:"Chakra Petch";font-weight:700;
+    font-size:clamp(38px,9vw,88px);line-height:1;letter-spacing:.02em;
+    color:#EAFBFF;font-variant-numeric:tabular-nums;
+    text-shadow:
+      0 0 6px rgba(34,224,255,.9),
+      0 0 26px rgba(34,224,255,.55),
+      0 0 52px rgba(34,224,255,.3);
+    white-space:nowrap;
+  }
+  .led-date .yr{color:var(--magenta);text-shadow:0 0 8px rgba(255,61,154,.9),0 0 30px rgba(255,61,154,.5)}
+  .led-sub{
+    position:relative;margin-top:14px;color:var(--dim);
+    font-size:13px;letter-spacing:.02em;
+  }
+  .led-sub b{color:var(--text);font-weight:500}
+
+  /* ---------- Grid ---------- */
+  .grid{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start}
+  @media(max-width:940px){.grid{grid-template-columns:1fr}}
+
+  .col-main{display:flex;flex-direction:column;gap:18px}
+  .col-side{display:flex;flex-direction:column;gap:18px}
+
+  .panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:clamp(16px,2.4vw,22px);position:relative;
+    box-shadow:0 14px 40px rgba(0,0,0,.35);
+  }
+  .panel-title{
+    font-family:"Chakra Petch";letter-spacing:.28em;text-transform:uppercase;
+    font-size:10px;color:var(--dim);margin-bottom:14px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .panel-title::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  /* ---------- Weekday keys ---------- */
+  .keys{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+  @media(max-width:640px){.keys{grid-template-columns:repeat(4,1fr)}}
+  .key{
+    position:relative;appearance:none;cursor:pointer;
+    background:linear-gradient(180deg,#16223c,#0e1728);
+    border:1px solid rgba(34,224,255,.28);
+    border-radius:12px;padding:16px 8px 13px;
+    color:var(--text);font-family:"Chakra Petch";font-weight:600;
+    letter-spacing:.06em;text-align:center;
+    transition:transform .12s, border-color .18s, box-shadow .18s, color .18s;
+    box-shadow:0 4px 0 rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.3) inset;
+  }
+  .key .num{
+    display:block;font-size:10px;color:var(--dim);letter-spacing:.2em;margin-bottom:7px;
+    transition:color .18s;
+  }
+  .key .day{display:block;font-size:15px;text-transform:uppercase}
+  .key:hover{
+    transform:translateY(-2px);
+    border-color:var(--cyan);color:#fff;
+    box-shadow:0 6px 0 rgba(0,0,0,.35), 0 0 24px rgba(34,224,255,.35), 0 0 0 1px rgba(34,224,255,.4) inset;
+  }
+  .key:hover .num{color:var(--cyan)}
+  .key:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+  .key.hot{
+    border-color:var(--magenta);color:#fff;
+    background:linear-gradient(180deg,#2a1430,#14172a);
+    box-shadow:0 6px 0 rgba(0,0,0,.35), 0 0 26px rgba(255,61,154,.4), 0 0 0 1px rgba(255,61,154,.45) inset;
+  }
+  .key.hot .num{color:var(--magenta)}
+
+  /* ---------- Solution ---------- */
+  .sol-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+  .sol-head .panel-title{margin:0}
+  .verdict{
+    font-family:"Chakra Petch";font-weight:700;letter-spacing:.08em;
+    color:var(--navy);background:var(--cyan);
+    padding:6px 14px;border-radius:8px;font-size:14px;text-transform:uppercase;
+    box-shadow:0 0 22px rgba(34,224,255,.5);
+  }
+  .steps{list-style:none;counter-reset:s;display:flex;flex-direction:column;gap:9px}
+  .steps li{
+    display:grid;grid-template-columns:26px 1fr auto;gap:12px;align-items:center;
+    padding:11px 13px;border-radius:10px;
+    background:var(--panel-2);border:1px solid var(--line);
+    font-size:13.5px;
+  }
+  .steps li::before{
+    counter-increment:s;content:counter(s);
+    width:26px;height:26px;border-radius:7px;display:grid;place-items:center;
+    font-family:"Chakra Petch";font-weight:700;font-size:12px;
+    color:var(--cyan);background:rgba(34,224,255,.08);
+    border:1px solid rgba(34,224,255,.3);
+  }
+  .steps .val{
+    font-family:"Chakra Petch";font-weight:700;font-variant-numeric:tabular-nums;
+    color:var(--amber);text-shadow:0 0 10px rgba(255,194,75,.35);
+    font-size:15px;
+  }
+  .steps li.final{border-color:rgba(34,224,255,.5);background:rgba(34,224,255,.06)}
+  .steps li.final .val{color:var(--cyan);text-shadow:0 0 12px rgba(34,224,255,.5)}
+  .steps code{font-family:"Chakra Petch";color:var(--text);letter-spacing:.02em}
+
+  /* ---------- Scoreboard stats ---------- */
+  .score-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:420px){.score-grid{grid-template-columns:repeat(2,1fr)}}
+  .stat{
+    background:var(--panel-2);border:1px solid var(--line);border-radius:12px;
+    padding:14px 12px;text-align:center;position:relative;overflow:hidden;
+  }
+  .stat .k{font-family:"Chakra Petch";letter-spacing:.22em;text-transform:uppercase;
+    font-size:9px;color:var(--dim);margin-bottom:8px}
+  .stat .v{
+    font-family:"Chakra Petch";font-weight:700;font-variant-numeric:tabular-nums;
+    font-size:clamp(22px,3.2vw,30px);line-height:1;color:var(--text);
+    text-shadow:0 0 14px rgba(34,224,255,.28);
+  }
+  .stat.cy .v{color:var(--cyan);text-shadow:0 0 16px rgba(34,224,255,.5)}
+  .stat.mg .v{color:var(--magenta);text-shadow:0 0 16px rgba(255,61,154,.5)}
+  .stat.am .v{color:var(--amber);text-shadow:0 0 16px rgba(255,194,75,.5)}
+  .stat .v small{font-size:.5em;color:var(--dim);text-shadow:none;margin-left:2px}
+
+  /* ---------- Combo meter ---------- */
+  .combo{
+    margin-top:16px;background:var(--panel-2);border:1px solid rgba(255,61,154,.25);
+    border-radius:12px;padding:15px 16px;position:relative;overflow:hidden;
+  }
+  .combo-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+  .combo-head .lbl{
+    font-family:"Chakra Petch";font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    font-size:13px;color:var(--text);display:inline-flex;align-items:center;gap:9px;
+  }
+  .combo-head .x{
+    color:var(--magenta);font-size:20px;text-shadow:0 0 16px rgba(255,61,154,.7);
+    font-variant-numeric:tabular-nums;
+  }
+  .combo-head .combo-tag{
+    font-family:"Chakra Petch";letter-spacing:.28em;font-size:10px;color:var(--amber);
+    text-shadow:0 0 12px rgba(255,194,75,.5);text-transform:uppercase;
+    animation:blink 1.4s steps(2) infinite;
+  }
+  @keyframes blink{50%{opacity:.35}}
+  .meter{
+    height:16px;border-radius:9px;background:#0a1120;overflow:hidden;position:relative;
+    border:1px solid rgba(255,61,154,.2);
+  }
+  .meter .fill{
+    height:100%;width:60%;border-radius:9px;
+    background:linear-gradient(90deg,var(--magenta),var(--amber));
+    box-shadow:0 0 18px rgba(255,61,154,.6);position:relative;
+  }
+  .meter .fill::after{
+    content:"";position:absolute;inset:0;
+    background:repeating-linear-gradient(90deg, rgba(255,255,255,.18) 0 3px, transparent 3px 9px);
+  }
+  .combo-note{margin-top:8px;font-size:11px;color:var(--dim);letter-spacing:.02em}
+
+  /* ---------- Cheat sheets ---------- */
+  .cheat table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+  .cheat td{padding:5px 4px;font-size:12px;border-bottom:1px solid rgba(120,150,200,.08)}
+  .cheat td:first-child{color:var(--dim);font-family:"Chakra Petch";letter-spacing:.04em}
+  .cheat td:last-child{text-align:right;font-family:"Chakra Petch";font-weight:600;color:var(--cyan)}
+  .month-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .month-grid .m{
+    background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
+    padding:8px 6px;text-align:center;
+  }
+  .month-grid .m span{display:block;font-size:9px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
+  .month-grid .m b{font-family:"Chakra Petch";font-size:17px;color:var(--amber);font-variant-numeric:tabular-nums}
+  .rrow{display:flex;flex-wrap:wrap;gap:4px}
+  .rrow .cell{
+    flex:1 0 auto;min-width:30px;text-align:center;background:var(--panel-2);
+    border:1px solid var(--line);border-radius:6px;padding:6px 2px;
+  }
+  .rrow .cell span{display:block;font-size:8px;color:var(--dim)}
+  .rrow .cell b{font-family:"Chakra Petch";font-size:13px;color:var(--cyan);font-variant-numeric:tabular-nums}
+  .sub-h{font-family:"Chakra Petch";letter-spacing:.16em;text-transform:uppercase;
+    font-size:9px;color:var(--dim);margin:14px 0 8px}
+  .sub-h:first-child{margin-top:0}
+
+  /* ---------- Shortcuts ---------- */
+  .shortcuts{
+    display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;
+    padding:14px 18px;margin-top:18px;
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  }
+  .shortcuts .sc{display:inline-flex;align-items:center;gap:9px;font-size:12px;color:var(--dim)}
+  kbd{
+    font-family:"Chakra Petch";font-weight:600;font-size:11px;
+    background:#0b1322;border:1px solid rgba(34,224,255,.28);
+    border-bottom-width:2px;color:var(--cyan);
+    padding:4px 9px;border-radius:6px;letter-spacing:.06em;
+    box-shadow:0 0 12px rgba(34,224,255,.1);
+  }
+
+  footer{
+    margin-top:20px;text-align:center;color:var(--dim);
+    font-family:"Chakra Petch";letter-spacing:.28em;font-size:9px;text-transform:uppercase;
+  }
+
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none !important;transition:none !important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <div class="logo">D</div>
+      <div>
+        <h1>DOOMS<span>DAY</span></h1>
+        <small>Weekday Speed Drill</small>
+      </div>
+    </div>
+    <button class="settings" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </button>
+  </header>
+
+  <!-- MARQUEE / LED READOUT -->
+  <section class="marquee">
+    <div class="marquee-head">
+      <span class="tag"><span class="dot"></span>Round 47 · Live</span>
+      <span class="timer"><span class="lab">TIME</span>3.4<span style="font-size:.6em">s</span></span>
+    </div>
+    <div class="prompt-lab">What day of the week?</div>
+    <div class="led-date">APR 04 <span class="yr">1994</span></div>
+    <div class="led-sub">Tap a key or press <b>1–7</b>. Reveal the working with <b>V</b>.</div>
+  </section>
+
+  <div class="grid">
+    <!-- MAIN COLUMN -->
+    <div class="col-main">
+
+      <!-- WEEKDAY KEYS -->
+      <div class="panel">
+        <div class="panel-title">Your Answer</div>
+        <div class="keys">
+          <button class="key" type="button"><span class="num">1</span><span class="day">Mon</span></button>
+          <button class="key" type="button"><span class="num">2</span><span class="day">Tue</span></button>
+          <button class="key" type="button"><span class="num">3</span><span class="day">Wed</span></button>
+          <button class="key" type="button"><span class="num">4</span><span class="day">Thu</span></button>
+          <button class="key" type="button"><span class="num">5</span><span class="day">Fri</span></button>
+          <button class="key" type="button"><span class="num">6</span><span class="day">Sat</span></button>
+          <button class="key" type="button"><span class="num">7</span><span class="day">Sun</span></button>
+        </div>
+      </div>
+
+      <!-- SOLUTION -->
+      <div class="panel">
+        <div class="sol-head">
+          <div class="panel-title" style="flex:1">Solution · Apr 4, 1994</div>
+          <span class="verdict">→ Monday</span>
+        </div>
+        <ol class="steps">
+          <li><span>April month value</span><span class="val">+3</span></li>
+          <li><span>Day of month</span><span class="val">+4</span></li>
+          <li><span>Century anchor · 1900s</span><span class="val">+3</span></li>
+          <li><span>Year term · <code>94 = 80 + 14</code> → 20s-block +2, r-term +3</span><span class="val">5</span></li>
+          <li><span>Sum · <code>3 + 4 + 3 + 5</code></span><span class="val">15</span></li>
+          <li class="final"><span><code>15 mod 7 = 1</code> → weekday index</span><span class="val">Mon</span></li>
+        </ol>
+      </div>
+
+      <!-- SCOREBOARD -->
+      <div class="panel">
+        <div class="panel-title">Scoreboard · This Session</div>
+        <div class="score-grid">
+          <div class="stat"><div class="k">Questions</div><div class="v">47</div></div>
+          <div class="stat cy"><div class="k">Correct</div><div class="v">41</div></div>
+          <div class="stat am"><div class="k">Accuracy</div><div class="v">87<small>%</small></div></div>
+          <div class="stat mg"><div class="k">Streak</div><div class="v">6</div></div>
+          <div class="stat cy"><div class="k">Fastest</div><div class="v">2.1<small>s</small></div></div>
+          <div class="stat"><div class="k">Average</div><div class="v">4.8<small>s</small></div></div>
+        </div>
+
+        <div class="combo">
+          <div class="combo-head">
+            <span class="lbl">STREAK <span class="x">×6</span></span>
+            <span class="combo-tag">◆ COMBO</span>
+          </div>
+          <div class="meter"><div class="fill"></div></div>
+          <div class="combo-note">4 more in a row to hit ×10 — HI-SCORE this session</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SIDE CONSOLE -->
+    <div class="col-side">
+
+      <!-- MONTH VALUES -->
+      <div class="panel cheat">
+        <div class="panel-title">Month Values</div>
+        <div class="month-grid">
+          <div class="m"><span>Jan</span><b>4</b></div>
+          <div class="m"><span>Feb</span><b>0</b></div>
+          <div class="m"><span>Mar</span><b>0</b></div>
+          <div class="m"><span>Apr</span><b>3</b></div>
+          <div class="m"><span>May</span><b>5</b></div>
+          <div class="m"><span>Jun</span><b>1</b></div>
+          <div class="m"><span>Jul</span><b>3</b></div>
+          <div class="m"><span>Aug</span><b>6</b></div>
+          <div class="m"><span>Sep</span><b>2</b></div>
+          <div class="m"><span>Oct</span><b>4</b></div>
+          <div class="m"><span>Nov</span><b>0</b></div>
+          <div class="m"><span>Dec</span><b>2</b></div>
+        </div>
+      </div>
+
+      <!-- YEAR TERM -->
+      <div class="panel cheat">
+        <div class="panel-title">Year Term</div>
+        <div class="sub-h">20s block</div>
+        <div class="rrow">
+          <div class="cell"><span>00</span><b>0</b></div>
+          <div class="cell"><span>20</span><b>4</b></div>
+          <div class="cell"><span>40</span><b>1</b></div>
+          <div class="cell"><span>60</span><b>5</b></div>
+          <div class="cell"><span>80</span><b>2</b></div>
+        </div>
+        <div class="sub-h">r (0–19) → value</div>
+        <div class="rrow">
+          <div class="cell"><span>0</span><b>0</b></div>
+          <div class="cell"><span>1</span><b>1</b></div>
+          <div class="cell"><span>2</span><b>2</b></div>
+          <div class="cell"><span>3</span><b>3</b></div>
+          <div class="cell"><span>4</span><b>5</b></div>
+          <div class="cell"><span>5</span><b>6</b></div>
+          <div class="cell"><span>6</span><b>0</b></div>
+          <div class="cell"><span>7</span><b>1</b></div>
+          <div class="cell"><span>8</span><b>3</b></div>
+          <div class="cell"><span>9</span><b>4</b></div>
+          <div class="cell"><span>10</span><b>5</b></div>
+          <div class="cell"><span>11</span><b>6</b></div>
+          <div class="cell"><span>12</span><b>1</b></div>
+          <div class="cell"><span>13</span><b>2</b></div>
+          <div class="cell"><span>14</span><b>3</b></div>
+          <div class="cell"><span>15</span><b>4</b></div>
+          <div class="cell"><span>16</span><b>6</b></div>
+          <div class="cell"><span>17</span><b>0</b></div>
+          <div class="cell"><span>18</span><b>1</b></div>
+          <div class="cell"><span>19</span><b>2</b></div>
+        </div>
+      </div>
+
+      <!-- CENTURY ANCHORS -->
+      <div class="panel cheat">
+        <div class="panel-title">Century Anchors</div>
+        <table>
+          <tr><td>1600</td><td>2</td></tr>
+          <tr><td>1700</td><td>0</td></tr>
+          <tr><td>1800</td><td>5</td></tr>
+          <tr><td>1900</td><td>3</td></tr>
+          <tr><td>2000</td><td>2</td></tr>
+          <tr><td>2100</td><td>0</td></tr>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SHORTCUTS -->
+  <div class="shortcuts">
+    <span class="sc"><kbd>Space</kbd> next date</span>
+    <span class="sc"><kbd>1</kbd>–<kbd>7</kbd> Mon–Sun</span>
+    <span class="sc"><kbd>V</kbd> show solution</span>
+  </div>
+
+  <footer>Doomsday Arcade · Insert Coin to Continue</footer>
+
+</div>
+
+<script>
+  // Static-first: everything above renders on load. This only adds a little
+  // arcade life — keyboard highlighting of the weekday keys — without being
+  // required for the look.
+  const keys = Array.from(document.querySelectorAll('.key'));
+  window.addEventListener('keydown', (e) => {
+    const n = parseInt(e.key, 10);
+    if (n >= 1 && n <= 7) {
+      keys.forEach(k => k.classList.remove('hot'));
+      keys[n - 1].classList.add('hot');
+    }
+  });
+</script>
+</body>
+</html>

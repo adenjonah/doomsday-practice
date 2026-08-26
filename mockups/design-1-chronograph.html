@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Doomsday — Chronograph</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --graphite: #1A1C1E;
+    --raised: #24272B;
+    --hairline: #35393E;
+    --text: #E8E6E1;
+    --muted: #8A8F96;
+    --lume: #C9F27A;
+    --lume-dim: rgba(201, 242, 122, 0.14);
+    --font-display: "Space Grotesk", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    background: var(--graphite);
+    color: var(--text);
+    font-family: var(--font-display);
+    line-height: 1.4;
+    min-height: 100vh;
+    padding: 28px;
+    /* faint machined vignette, no gradient decoration on components */
+    background-image: radial-gradient(circle at 50% 18%, #202327 0%, var(--graphite) 62%);
+  }
+
+  .shell {
+    max-width: 1120px;
+    margin: 0 auto;
+  }
+
+  /* ---------- Header ---------- */
+  header.bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid var(--hairline);
+    background: var(--raised);
+    border-radius: 10px;
+    padding: 14px 20px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .brand-mark {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid var(--hairline);
+    position: relative;
+    flex: none;
+  }
+  .brand-mark::before {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    border: 1px solid var(--lume);
+    opacity: 0.65;
+  }
+  .brand-mark::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1px;
+    height: 9px;
+    background: var(--lume);
+    transform: translate(-50%, -100%);
+    transform-origin: bottom;
+  }
+
+  .brand-name {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .brand-sub {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .settings-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--graphite);
+    color: var(--muted);
+    border: 1px solid var(--hairline);
+    border-radius: 7px;
+    padding: 8px 13px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .settings-btn:hover { color: var(--text); border-color: var(--muted); }
+  .settings-btn svg { display: block; }
+
+  /* ---------- Layout grid ---------- */
+  .grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .panel {
+    border: 1px solid var(--hairline);
+    background: var(--raised);
+    border-radius: 10px;
+  }
+
+  .panel-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel-label::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    background: var(--lume);
+    border-radius: 50%;
+    box-shadow: 0 0 6px var(--lume);
+    flex: none;
+  }
+
+  /* ---------- Dial (signature) ---------- */
+  .dial-panel {
+    padding: 24px 24px 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .dial-head {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .dial-timer {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--lume);
+  }
+
+  .dial-wrap {
+    position: relative;
+    width: 340px;
+    max-width: 78vw;
+    aspect-ratio: 1;
+    margin: 6px 0 2px;
+  }
+  .dial-wrap svg { width: 100%; height: 100%; display: block; }
+
+  .dial-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    pointer-events: none;
+  }
+  .dial-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .dial-month {
+    font-size: 34px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .dial-daynum {
+    font-family: var(--font-mono);
+    font-size: 62px;
+    font-weight: 600;
+    line-height: 0.9;
+    color: var(--lume);
+    margin: 2px 0 4px;
+  }
+  .dial-year {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    letter-spacing: 0.22em;
+    color: var(--text);
+  }
+  .dial-foot {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 12px;
+  }
+
+  /* ---------- Weekday keys ---------- */
+  .keys {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    width: 100%;
+    margin-top: 24px;
+  }
+  .key {
+    position: relative;
+    background: var(--graphite);
+    border: 1px solid var(--hairline);
+    border-top-color: #40454b;
+    border-bottom-color: #121315;
+    border-radius: 8px;
+    padding: 14px 4px 12px;
+    text-align: center;
+    cursor: pointer;
+    color: var(--text);
+    font-family: var(--font-display);
+    transition: transform 0.08s, border-color 0.15s, background 0.15s;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 2px 3px rgba(0,0,0,0.35);
+  }
+  .key:hover { border-color: var(--muted); background: #26292d; }
+  .key:active { transform: translateY(1px); }
+  .key .k-num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .key .k-name {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+  }
+  .key.is-answer {
+    border-color: var(--lume);
+    background: var(--lume-dim);
+    box-shadow: inset 0 0 0 1px rgba(201,242,122,0.25), 0 0 14px rgba(201,242,122,0.12);
+  }
+  .key.is-answer .k-name { color: var(--lume); }
+  .key.is-answer .k-num { color: var(--lume); }
+  .key:focus-visible {
+    outline: 2px solid var(--lume);
+    outline-offset: 2px;
+  }
+
+  /* ---------- Solution readout ---------- */
+  .solution { padding: 20px 22px 22px; }
+  .solution .panel-label { margin-bottom: 16px; }
+
+  .verdict {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+  }
+  .verdict .v-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .verdict .v-day {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--lume);
+    letter-spacing: 0.02em;
+  }
+
+  .steps { list-style: none; counter-reset: step; }
+  .steps li {
+    display: grid;
+    grid-template-columns: 22px 1fr auto;
+    gap: 12px;
+    align-items: baseline;
+    padding: 9px 0;
+    border-bottom: 1px dashed var(--hairline);
+  }
+  .steps li:last-child { border-bottom: none; }
+  .steps .s-idx {
+    counter-increment: step;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .steps .s-idx::before { content: counter(step, decimal-leading-zero); }
+  .steps .s-text {
+    font-size: 13px;
+    color: var(--text);
+  }
+  .steps .s-text .lo { color: var(--muted); }
+  .steps .s-val {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--lume);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .steps li.final { padding-top: 12px; }
+  .steps li.final .s-text { font-weight: 600; }
+
+  /* ---------- Stats strip ---------- */
+  .stats {
+    margin-top: 20px;
+    padding: 6px 4px;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .stat {
+    padding: 12px 14px;
+    border-right: 1px solid var(--hairline);
+    text-align: left;
+  }
+  .stat:last-child { border-right: none; }
+  .stat .st-val {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+  .stat.accent .st-val { color: var(--lume); }
+  .stat .st-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ---------- Shortcuts ---------- */
+  .shortcuts {
+    margin-top: 20px;
+    padding: 12px 18px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px;
+    align-items: center;
+  }
+  .sc {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border: 1px solid var(--hairline);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    background: var(--graphite);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 10px;
+  }
+
+  /* ---------- Cheat sheets ---------- */
+  .cheats {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .cheat { padding: 18px 18px 16px; }
+  .cheat .panel-label { margin-bottom: 14px; }
+  .cheat-grid {
+    display: grid;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .cheat-grid.cols {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .cell {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 5px 8px;
+    border: 1px solid var(--hairline);
+    border-radius: 5px;
+    background: var(--graphite);
+  }
+  .cell .c-k { color: var(--muted); }
+  .cell .c-v { color: var(--text); font-weight: 500; }
+
+  .rterm {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 3px;
+    margin-top: 10px;
+  }
+  .rcell {
+    text-align: center;
+    padding: 5px 0;
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    background: var(--graphite);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  .rcell .r-i { display: block; font-size: 8px; color: var(--muted); }
+  .rcell .r-v { color: var(--text); font-weight: 500; }
+  .cheat-note {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    margin-top: 12px;
+  }
+
+  footer.foot {
+    margin-top: 26px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ---------- Timer sweep animation ---------- */
+  .sweep {
+    stroke: var(--lume);
+    stroke-width: 3;
+    fill: none;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 4px rgba(201,242,122,0.5));
+  }
+  @keyframes sweepgrow {
+    from { stroke-dashoffset: var(--dash); }
+    to   { stroke-dashoffset: calc(var(--dash) * 0.24); }
+  }
+  .sweep.animate {
+    animation: sweepgrow 4.8s linear infinite alternate;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sweep.animate { animation: none; }
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+    .cheats { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(3, 1fr); }
+    .stat:nth-child(3) { border-right: none; }
+  }
+  @media (max-width: 560px) {
+    body { padding: 16px; }
+    .keys { grid-template-columns: repeat(4, 1fr); }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .stat { border-right: none; border-bottom: 1px solid var(--hairline); }
+    .cheat-grid.cols { grid-template-columns: repeat(3, 1fr); }
+    .rterm { grid-template-columns: repeat(5, 1fr); }
+    .shortcuts { gap: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Header -->
+  <header class="bar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div>
+        <div class="brand-name">Doomsday</div>
+        <div class="brand-sub">Weekday Chronometer</div>
+      </div>
+    </div>
+    <button class="settings-btn" type="button">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+        <circle cx="12" cy="12" r="3.2"/>
+        <path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>
+      </svg>
+      Settings
+    </button>
+  </header>
+
+  <!-- Main grid: dial + solution -->
+  <div class="grid">
+
+    <!-- Dial panel -->
+    <section class="panel dial-panel">
+      <div class="dial-head">
+        <span class="panel-label">Current Question</span>
+        <span class="dial-timer" id="timer">02.1s</span>
+      </div>
+
+      <div class="dial-wrap">
+        <svg viewBox="0 0 200 200" role="img" aria-label="Date dial showing April 4, 1994">
+          <!-- outer ring -->
+          <circle cx="100" cy="100" r="94" fill="none" stroke="#35393E" stroke-width="1"/>
+          <circle cx="100" cy="100" r="72" fill="none" stroke="#2C3035" stroke-width="1"/>
+          <!-- tick ring -->
+          <g id="ticks" stroke="#8A8F96"></g>
+          <!-- timer sweep arc: starts at top (12 o'clock), 200*pi*... -->
+          <circle class="sweep animate" cx="100" cy="100" r="83"
+                  stroke-dasharray="521.5" stroke-dashoffset="391"
+                  transform="rotate(-90 100 100)"
+                  style="--dash:521.5;"/>
+        </svg>
+        <div class="dial-center">
+          <div class="dial-eyebrow">What weekday?</div>
+          <div class="dial-month">April</div>
+          <div class="dial-daynum">04</div>
+          <div class="dial-year">1994</div>
+          <div class="dial-foot">Gregorian · No. 47</div>
+        </div>
+      </div>
+
+      <!-- Weekday keys -->
+      <div class="keys" role="group" aria-label="Pick the weekday">
+        <button class="key is-answer" type="button"><span class="k-num">1</span><span class="k-name">Mon</span></button>
+        <button class="key" type="button"><span class="k-num">2</span><span class="k-name">Tue</span></button>
+        <button class="key" type="button"><span class="k-num">3</span><span class="k-name">Wed</span></button>
+        <button class="key" type="button"><span class="k-num">4</span><span class="k-name">Thu</span></button>
+        <button class="key" type="button"><span class="k-num">5</span><span class="k-name">Fri</span></button>
+        <button class="key" type="button"><span class="k-num">6</span><span class="k-name">Sat</span></button>
+        <button class="key" type="button"><span class="k-num">7</span><span class="k-name">Sun</span></button>
+      </div>
+    </section>
+
+    <!-- Solution -->
+    <section class="panel solution">
+      <span class="panel-label">Solution · How it solves</span>
+      <div class="verdict">
+        <span class="v-label">April 4, 1994</span>
+        <span class="v-day">Monday</span>
+      </div>
+      <ol class="steps">
+        <li><span class="s-idx"></span><span class="s-text">Month value <span class="lo">— April</span></span><span class="s-val">+3</span></li>
+        <li><span class="s-idx"></span><span class="s-text">Day of month</span><span class="s-val">+4</span></li>
+        <li><span class="s-idx"></span><span class="s-text">Century anchor <span class="lo">— 1900s</span></span><span class="s-val">+3</span></li>
+        <li><span class="s-idx"></span><span class="s-text">Year term <span class="lo">— 94 = 80+14 → block&nbsp;+2, r&nbsp;+3</span></span><span class="s-val">5</span></li>
+        <li><span class="s-idx"></span><span class="s-text">Sum <span class="lo">— 3 + 4 + 3 + 5</span></span><span class="s-val">15</span></li>
+        <li class="final"><span class="s-idx"></span><span class="s-text">15 mod 7 = 1 <span class="lo">→ Monday</span></span><span class="s-val">1</span></li>
+      </ol>
+    </section>
+  </div>
+
+  <!-- Stats strip -->
+  <section class="panel stats" aria-label="Session statistics">
+    <div class="stat"><div class="st-val">47</div><div class="st-label">Questions</div></div>
+    <div class="stat"><div class="st-val">41</div><div class="st-label">Correct</div></div>
+    <div class="stat accent"><div class="st-val">87%</div><div class="st-label">Accuracy</div></div>
+    <div class="stat accent"><div class="st-val">6</div><div class="st-label">Streak</div></div>
+    <div class="stat"><div class="st-val">2.1s</div><div class="st-label">Fastest</div></div>
+    <div class="stat"><div class="st-val">4.8s</div><div class="st-label">Average</div></div>
+  </section>
+
+  <!-- Shortcuts -->
+  <section class="panel shortcuts" aria-label="Keyboard shortcuts">
+    <span class="sc"><span class="kbd">Space</span> Next date</span>
+    <span class="sc"><span class="kbd">1</span>–<span class="kbd">7</span> Mon–Sun</span>
+    <span class="sc"><span class="kbd">V</span> Show solution</span>
+  </section>
+
+  <!-- Cheat sheets -->
+  <div class="cheats">
+
+    <!-- Month values -->
+    <section class="panel cheat">
+      <span class="panel-label">Month Values</span>
+      <div class="cheat-grid cols">
+        <div class="cell"><span class="c-k">Jan</span><span class="c-v">4</span></div>
+        <div class="cell"><span class="c-k">Feb</span><span class="c-v">0</span></div>
+        <div class="cell"><span class="c-k">Mar</span><span class="c-v">0</span></div>
+        <div class="cell"><span class="c-k">Apr</span><span class="c-v">3</span></div>
+        <div class="cell"><span class="c-k">May</span><span class="c-v">5</span></div>
+        <div class="cell"><span class="c-k">Jun</span><span class="c-v">1</span></div>
+        <div class="cell"><span class="c-k">Jul</span><span class="c-v">3</span></div>
+        <div class="cell"><span class="c-k">Aug</span><span class="c-v">6</span></div>
+        <div class="cell"><span class="c-k">Sep</span><span class="c-v">2</span></div>
+        <div class="cell"><span class="c-k">Oct</span><span class="c-v">4</span></div>
+        <div class="cell"><span class="c-k">Nov</span><span class="c-v">0</span></div>
+        <div class="cell"><span class="c-k">Dec</span><span class="c-v">2</span></div>
+      </div>
+    </section>
+
+    <!-- Year term -->
+    <section class="panel cheat">
+      <span class="panel-label">Year Term</span>
+      <div class="cheat-grid cols">
+        <div class="cell"><span class="c-k">00</span><span class="c-v">0</span></div>
+        <div class="cell"><span class="c-k">20</span><span class="c-v">4</span></div>
+        <div class="cell"><span class="c-k">40</span><span class="c-v">1</span></div>
+        <div class="cell"><span class="c-k">60</span><span class="c-v">5</span></div>
+        <div class="cell"><span class="c-k">80</span><span class="c-v">2</span></div>
+      </div>
+      <div class="cheat-note">r (0–19) remainder → value</div>
+      <div class="rterm">
+        <span class="rcell"><span class="r-i">0</span><span class="r-v">0</span></span>
+        <span class="rcell"><span class="r-i">1</span><span class="r-v">1</span></span>
+        <span class="rcell"><span class="r-i">2</span><span class="r-v">2</span></span>
+        <span class="rcell"><span class="r-i">3</span><span class="r-v">3</span></span>
+        <span class="rcell"><span class="r-i">4</span><span class="r-v">5</span></span>
+        <span class="rcell"><span class="r-i">5</span><span class="r-v">6</span></span>
+        <span class="rcell"><span class="r-i">6</span><span class="r-v">0</span></span>
+        <span class="rcell"><span class="r-i">7</span><span class="r-v">1</span></span>
+        <span class="rcell"><span class="r-i">8</span><span class="r-v">3</span></span>
+        <span class="rcell"><span class="r-i">9</span><span class="r-v">4</span></span>
+        <span class="rcell"><span class="r-i">10</span><span class="r-v">5</span></span>
+        <span class="rcell"><span class="r-i">11</span><span class="r-v">6</span></span>
+        <span class="rcell"><span class="r-i">12</span><span class="r-v">1</span></span>
+        <span class="rcell"><span class="r-i">13</span><span class="r-v">2</span></span>
+        <span class="rcell"><span class="r-i">14</span><span class="r-v">3</span></span>
+        <span class="rcell"><span class="r-i">15</span><span class="r-v">4</span></span>
+        <span class="rcell"><span class="r-i">16</span><span class="r-v">6</span></span>
+        <span class="rcell"><span class="r-i">17</span><span class="r-v">0</span></span>
+        <span class="rcell"><span class="r-i">18</span><span class="r-v">1</span></span>
+        <span class="rcell"><span class="r-i">19</span><span class="r-v">2</span></span>
+      </div>
+    </section>
+
+    <!-- Century anchors -->
+    <section class="panel cheat">
+      <span class="panel-label">Century Anchors</span>
+      <div class="cheat-grid">
+        <div class="cell"><span class="c-k">1600</span><span class="c-v">2</span></div>
+        <div class="cell"><span class="c-k">1700</span><span class="c-v">0</span></div>
+        <div class="cell"><span class="c-k">1800</span><span class="c-v">5</span></div>
+        <div class="cell"><span class="c-k">1900</span><span class="c-v">3</span></div>
+        <div class="cell"><span class="c-k">2000</span><span class="c-v">2</span></div>
+        <div class="cell"><span class="c-k">2100</span><span class="c-v">0</span></div>
+      </div>
+      <div class="cheat-note">Cycle repeats every 400 years</div>
+    </section>
+  </div>
+
+  <footer class="foot">Doomsday · Precision Weekday Instrument</footer>
+</div>
+
+<script>
+  // Generate tick ring (60 ticks, every 5th is long + lume)
+  (function () {
+    var ticks = document.getElementById("ticks");
+    if (!ticks) return;
+    var cx = 100, cy = 100, rOuter = 90;
+    var frag = "";
+    for (var i = 0; i < 60; i++) {
+      var ang = (i / 60) * Math.PI * 2 - Math.PI / 2;
+      var major = i % 5 === 0;
+      var len = major ? 8 : 4;
+      var r1 = rOuter, r2 = rOuter - len;
+      var x1 = cx + r1 * Math.cos(ang), y1 = cy + r1 * Math.sin(ang);
+      var x2 = cx + r2 * Math.cos(ang), y2 = cy + r2 * Math.sin(ang);
+      var col = major ? "#C9F27A" : "#4A4F55";
+      var w = major ? 1.4 : 1;
+      var op = major ? 0.85 : 0.6;
+      frag += '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) +
+              '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) +
+              '" stroke="' + col + '" stroke-width="' + w + '" opacity="' + op + '"/>';
+    }
+    ticks.innerHTML = frag;
+  })();
+
+  // Optional live timer readout (paused if reduced motion)
+  (function () {
+    var el = document.getElementById("timer");
+    if (!el) return;
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+    var t = 2.1;
+    setInterval(function () {
+      t += 0.1;
+      if (t > 9.9) t = 0.0;
+      el.textContent = (t < 10 ? "0" : "") + t.toFixed(1) + "s";
+    }, 1000);
+  })();
+</script>
+</body>
+</html>

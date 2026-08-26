@@ -3,17 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doomsday Practice Quiz</title>
+    <title>Doomsday Practice</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/index.min.js"></script>
 </head>
 <body>
+    <div class="crt-overlay" aria-hidden="true"></div>
+
     <div class="container">
-        <header>
-            <h1>Doomsday Practice Quiz</h1>
+        <header class="topbar">
+            <div class="brand">
+                <span class="logo">D</span>
+                <h1>DOOM<span>SDAY</span></h1>
+                <span class="tag">weekday speed&nbsp;drill</span>
+            </div>
             <div class="header-controls">
-                <button id="mobileMenuBtn" class="mobile-menu-btn">☰ Menu</button>
-                <button id="settingsBtn" class="settings-btn">⚙️ Settings</button>
+                <nav class="hints-panel" aria-label="Reference cheat sheets">
+                    <div class="hint-section">
+                        <button id="monthHintBtn" class="hint-btn">Month</button>
+                        <div id="monthHintDropdown" class="hint-dropdown">
+                            <div class="hint-title">Month values</div>
+                            <table class="hint-table">
+                                <tr><th>Jan</th><td>4</td><th>May</th><td>5</td><th>Sep</th><td>2</td></tr>
+                                <tr><th>Feb</th><td>0</td><th>Jun</th><td>1</td><th>Oct</th><td>4</td></tr>
+                                <tr><th>Mar</th><td>0</td><th>Jul</th><td>3</td><th>Nov</th><td>0</td></tr>
+                                <tr><th>Apr</th><td>3</td><th>Aug</th><td>6</td><th>Dec</th><td>2</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="hint-section">
+                        <button id="yearHintBtn" class="hint-btn">Year</button>
+                        <div id="yearHintDropdown" class="hint-dropdown wide">
+                            <div class="hint-title">Year term</div>
+                            <p class="hint-note">Last two digits T = 20s block + r. Add both, mod 7.</p>
+                            <table class="hint-table">
+                                <tr><th>20s</th><td>00</td><td>20</td><td>40</td><td>60</td><td>80</td></tr>
+                                <tr><th>+</th><td>0</td><td>4</td><td>1</td><td>5</td><td>2</td></tr>
+                            </table>
+                            <table class="hint-table">
+                                <tr><th>r</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td></tr>
+                                <tr><th>+</th><td>0</td><td>1</td><td>2</td><td>3</td><td>5</td><td>6</td><td>0</td><td>1</td><td>3</td><td>4</td></tr>
+                                <tr><th>r</th><td>10</td><td>11</td><td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td></tr>
+                                <tr><th>+</th><td>5</td><td>6</td><td>1</td><td>2</td><td>3</td><td>4</td><td>6</td><td>0</td><td>1</td><td>2</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="hint-section">
+                        <button id="centuryHintBtn" class="hint-btn">Century</button>
+                        <div id="centuryHintDropdown" class="hint-dropdown">
+                            <div class="hint-title">Century anchors</div>
+                            <table class="hint-table">
+                                <tr><th>1600</th><td>2</td><th>2000</th><td>2</td></tr>
+                                <tr><th>1700</th><td>0</td><th>2100</th><td>0</td></tr>
+                                <tr><th>1800</th><td>5</td><th>&nbsp;</th><td>&nbsp;</td></tr>
+                                <tr><th>1900</th><td>3</td><th>&nbsp;</th><td>&nbsp;</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </nav>
+                <button id="mobileMenuBtn" class="mobile-menu-btn" aria-label="Open menu">☰</button>
+                <button id="settingsBtn" class="settings-btn">⚙ Settings</button>
             </div>
         </header>
 
@@ -21,250 +72,121 @@
         <div id="mobileSidebar" class="mobile-sidebar">
             <div class="sidebar-header">
                 <h3>Menu</h3>
-                <button id="closeSidebarBtn" class="close-sidebar-btn">✕</button>
+                <button id="closeSidebarBtn" class="close-sidebar-btn" aria-label="Close menu">✕</button>
             </div>
             <div class="sidebar-content">
                 <div class="sidebar-section">
                     <div class="stats-panel mobile-stats">
-                        <h3>Session Statistics</h3>
-                        <div class="stat-item">
-                            <span class="stat-label">Questions:</span>
-                            <span id="mobileTotal">0</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Correct:</span>
-                            <span id="mobileCorrect">0</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Accuracy:</span>
-                            <span id="mobileAccuracy">0%</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Fastest:</span>
-                            <span id="mobileFastest">-</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Slowest:</span>
-                            <span id="mobileSlowest">-</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Average:</span>
-                            <span id="mobileAverage">-</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Streak:</span>
-                            <span id="mobileStreak">0</span>
-                        </div>
-                        <button id="mobileResetStatsBtn" class="reset-stats-btn">Reset Statistics</button>
+                        <h3>Scoreboard</h3>
+                        <div class="stat-item"><span class="stat-label">Questions</span><span id="mobileTotal">0</span></div>
+                        <div class="stat-item"><span class="stat-label">Correct</span><span id="mobileCorrect">0</span></div>
+                        <div class="stat-item"><span class="stat-label">Accuracy</span><span id="mobileAccuracy">0%</span></div>
+                        <div class="stat-item"><span class="stat-label">Fastest</span><span id="mobileFastest">-</span></div>
+                        <div class="stat-item"><span class="stat-label">Slowest</span><span id="mobileSlowest">-</span></div>
+                        <div class="stat-item"><span class="stat-label">Average</span><span id="mobileAverage">-</span></div>
+                        <div class="stat-item"><span class="stat-label">Streak</span><span id="mobileStreak">0</span></div>
+                        <button id="mobileResetStatsBtn" class="reset-stats-btn">Reset</button>
                     </div>
                 </div>
                 <div class="sidebar-section">
                     <h4>Settings</h4>
-                    <button id="mobileSettingsBtn" class="sidebar-item-btn">⚙️ Quiz Settings</button>
+                    <button id="mobileSettingsBtn" class="sidebar-item-btn">⚙ Quiz Settings</button>
                 </div>
             </div>
         </div>
         <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
         <main class="main-content">
-            <div class="hints-panel">
-                <div class="hint-section">
-                    <button id="monthHintBtn" class="hint-btn">Month Values</button>
-                    <div id="monthHintDropdown" class="hint-dropdown">
-                        <table class="hint-table">
-                            <tr>
-                                <th>Month</th><th>Value</th>
-                                <th>Month</th><th>Value</th>
-                                <th>Month</th><th>Value</th>
-                            </tr>
-                            <tr>
-                                <td>January</td><td>4</td>
-                                <td>May</td><td>5</td>
-                                <td>September</td><td>2</td>
-                            </tr>
-                            <tr>
-                                <td>February</td><td>0</td>
-                                <td>June</td><td>1</td>
-                                <td>October</td><td>4</td>
-                            </tr>
-                            <tr>
-                                <td>March</td><td>0</td>
-                                <td>July</td><td>3</td>
-                                <td>November</td><td>0</td>
-                            </tr>
-                            <tr>
-                                <td>April</td><td>3</td>
-                                <td>August</td><td>6</td>
-                                <td>December</td><td>2</td>
-                            </tr>
-                        </table>
-                    </div>
+            <section class="cabinet">
+                <div class="cabinet-top">
+                    <span id="questionCounter" class="question-counter">Question: 0</span>
+                    <span class="cabinet-badge">● LIVE</span>
                 </div>
 
-                <div class="hint-section">
-                    <button id="yearHintBtn" class="hint-btn">Year Doomsdays</button>
-                    <div id="yearHintDropdown" class="hint-dropdown">
-                        <table class="hint-table">
-                            <tr><th>Year</th><th>Value</th><th>Day</th></tr>
-                            <tr><td>2003</td><td>5</td><td>Friday</td></tr>
-                            <tr><td>2004</td><td>0</td><td>Sunday</td></tr>
-                            <tr><td>2005</td><td>1</td><td>Monday</td></tr>
-                            <tr><td>2006</td><td>2</td><td>Tuesday</td></tr>
-                            <tr><td>2007</td><td>3</td><td>Wednesday</td></tr>
-                            <tr><td>2008</td><td>5</td><td>Friday</td></tr>
-                            <tr><td>2009</td><td>6</td><td>Saturday</td></tr>
-                            <tr><td>2010</td><td>0</td><td>Sunday</td></tr>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="hint-section">
-                    <button id="centuryHintBtn" class="hint-btn">Century Anchors</button>
-                    <div id="centuryHintDropdown" class="hint-dropdown">
-                        <table class="hint-table">
-                            <tr><th>Century</th><th>Value</th><th>Anchor Day</th></tr>
-                            <tr><td>1600s</td><td>2</td><td>Tuesday</td></tr>
-                            <tr><td>1700s</td><td>0</td><td>Sunday</td></tr>
-                            <tr><td>1800s</td><td>5</td><td>Friday</td></tr>
-                            <tr><td>1900s</td><td>3</td><td>Wednesday</td></tr>
-                            <tr><td>2000s</td><td>2</td><td>Tuesday</td></tr>
-                            <tr><td>2100s</td><td>0</td><td>Sunday</td></tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="quiz-area">
-                <div id="questionCounter" class="question-counter">Question: 0</div>
-                
-                <div class="keyboard-shortcuts">
-                    <span class="shortcuts-title">Keyboard: </span>
-                    <span class="shortcut"><kbd>Space</kbd> Next</span>
-                    <span class="shortcut"><kbd>1-7</kbd> Mon-Sun</span>
-                    <span class="shortcut"><kbd>0</kbd> Sun</span>
-                    <span class="shortcut"><kbd>V</kbd> Explanation</span>
-                    <span class="shortcut"><kbd>G</kbd> Discard</span>
-                </div>
-                
-                <div id="dateDisplay" class="date-display">
-                    Click "Next Date" to start!
-                </div>
+                <div id="dateDisplay" class="date-display">Press <b>Next Date</b> to start</div>
 
                 <div class="quiz-controls">
-                    <button id="nextDateBtn" class="next-date-btn">Next Date</button>
-                    <button id="discardBtn" class="discard-btn" style="display: none;" title="Discard Question">🗑️</button>
+                    <button id="nextDateBtn" class="next-date-btn">▶ Next Date</button>
+                    <button id="discardBtn" class="discard-btn" style="display: none;" title="Discard Question">🗑 Discard</button>
                 </div>
 
                 <div class="answer-buttons" id="answerButtons" style="display: none;">
-                    <button class="day-btn" data-day="Monday">Monday</button>
-                    <button class="day-btn" data-day="Tuesday">Tuesday</button>
-                    <button class="day-btn" data-day="Wednesday">Wednesday</button>
-                    <button class="day-btn" data-day="Thursday">Thursday</button>
-                    <button class="day-btn" data-day="Friday">Friday</button>
-                    <button class="day-btn" data-day="Saturday">Saturday</button>
-                    <button class="day-btn" data-day="Sunday">Sunday</button>
+                    <div class="day-grid">
+                        <button class="day-btn" data-day="Monday" data-key="1">Mon</button>
+                        <button class="day-btn" data-day="Tuesday" data-key="2">Tue</button>
+                        <button class="day-btn" data-day="Wednesday" data-key="3">Wed</button>
+                        <button class="day-btn" data-day="Thursday" data-key="4">Thu</button>
+                        <button class="day-btn" data-day="Friday" data-key="5">Fri</button>
+                        <button class="day-btn" data-day="Saturday" data-key="6">Sat</button>
+                        <button class="day-btn" data-day="Sunday" data-key="7">Sun</button>
+                    </div>
                 </div>
 
                 <div id="feedback" class="feedback"></div>
-            </div>
 
-            <div class="stats-panel" id="statsPanel">
-                <h3>Session Statistics</h3>
-                <div class="stat-item">
-                    <span class="stat-label">Questions:</span>
-                    <span id="totalQuestions">0</span>
+                <div class="keyboard-shortcuts">
+                    <span class="shortcut"><kbd>Space</kbd> Next</span>
+                    <span class="shortcut"><kbd>1</kbd>–<kbd>7</kbd> Mon–Sun</span>
+                    <span class="shortcut"><kbd>V</kbd> Solution</span>
+                    <span class="shortcut"><kbd>G</kbd> Discard</span>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-label">Correct:</span>
-                    <span id="correctCount">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Accuracy:</span>
-                    <span id="accuracy">0%</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Fastest:</span>
-                    <span id="fastestTime">-</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Slowest:</span>
-                    <span id="slowestTime">-</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Average:</span>
-                    <span id="averageTime">-</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Streak:</span>
-                    <span id="currentStreak">0</span>
+            </section>
+
+            <aside class="stats-panel scoreboard" id="statsPanel">
+                <h3>Scoreboard</h3>
+                <div class="score-grid">
+                    <div class="stat-item"><span class="stat-label">Questions</span><span id="totalQuestions">0</span></div>
+                    <div class="stat-item"><span class="stat-label">Correct</span><span id="correctCount">0</span></div>
+                    <div class="stat-item accent-cyan"><span class="stat-label">Accuracy</span><span id="accuracy">0%</span></div>
+                    <div class="stat-item accent-magenta"><span class="stat-label">Streak</span><span id="currentStreak">0</span></div>
+                    <div class="stat-item"><span class="stat-label">Fastest</span><span id="fastestTime">-</span></div>
+                    <div class="stat-item"><span class="stat-label">Average</span><span id="averageTime">-</span></div>
+                    <div class="stat-item"><span class="stat-label">Slowest</span><span id="slowestTime">-</span></div>
                 </div>
                 <button id="resetStatsBtn" class="reset-stats-btn">Reset Statistics</button>
-            </div>
+            </aside>
         </main>
 
         <!-- Mobile Hints (shown at bottom on mobile) -->
         <div class="mobile-hints">
             <div class="hint-section">
-                <button id="mobileMonthHintBtn" class="hint-btn">Month Values</button>
+                <button id="mobileMonthHintBtn" class="hint-btn">Month</button>
                 <div id="mobileMonthHintDropdown" class="hint-dropdown">
+                    <div class="hint-title">Month values</div>
                     <table class="hint-table">
-                        <tr>
-                            <th>Month</th><th>Value</th>
-                            <th>Month</th><th>Value</th>
-                            <th>Month</th><th>Value</th>
-                        </tr>
-                        <tr>
-                            <td>January</td><td>4</td>
-                            <td>May</td><td>5</td>
-                            <td>September</td><td>2</td>
-                        </tr>
-                        <tr>
-                            <td>February</td><td>0</td>
-                            <td>June</td><td>1</td>
-                            <td>October</td><td>4</td>
-                        </tr>
-                        <tr>
-                            <td>March</td><td>0</td>
-                            <td>July</td><td>3</td>
-                            <td>November</td><td>0</td>
-                        </tr>
-                        <tr>
-                            <td>April</td><td>3</td>
-                            <td>August</td><td>6</td>
-                            <td>December</td><td>2</td>
-                        </tr>
+                        <tr><th>Jan</th><td>4</td><th>May</th><td>5</td><th>Sep</th><td>2</td></tr>
+                        <tr><th>Feb</th><td>0</td><th>Jun</th><td>1</td><th>Oct</th><td>4</td></tr>
+                        <tr><th>Mar</th><td>0</td><th>Jul</th><td>3</td><th>Nov</th><td>0</td></tr>
+                        <tr><th>Apr</th><td>3</td><th>Aug</th><td>6</td><th>Dec</th><td>2</td></tr>
                     </table>
                 </div>
             </div>
-
             <div class="hint-section">
-                <button id="mobileYearHintBtn" class="hint-btn">Year Doomsdays</button>
-                <div id="mobileYearHintDropdown" class="hint-dropdown">
+                <button id="mobileYearHintBtn" class="hint-btn">Year</button>
+                <div id="mobileYearHintDropdown" class="hint-dropdown wide">
+                    <div class="hint-title">Year term</div>
+                    <p class="hint-note">Last two digits T = 20s block + r. Add both, mod 7.</p>
                     <table class="hint-table">
-                        <tr><th>Year</th><th>Value</th><th>Day</th></tr>
-                        <tr><td>2003</td><td>5</td><td>Friday</td></tr>
-                        <tr><td>2004</td><td>0</td><td>Sunday</td></tr>
-                        <tr><td>2005</td><td>1</td><td>Monday</td></tr>
-                        <tr><td>2006</td><td>2</td><td>Tuesday</td></tr>
-                        <tr><td>2007</td><td>3</td><td>Wednesday</td></tr>
-                        <tr><td>2008</td><td>5</td><td>Friday</td></tr>
-                        <tr><td>2009</td><td>6</td><td>Saturday</td></tr>
-                        <tr><td>2010</td><td>0</td><td>Sunday</td></tr>
+                        <tr><th>20s</th><td>00</td><td>20</td><td>40</td><td>60</td><td>80</td></tr>
+                        <tr><th>+</th><td>0</td><td>4</td><td>1</td><td>5</td><td>2</td></tr>
+                    </table>
+                    <table class="hint-table">
+                        <tr><th>r</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td></tr>
+                        <tr><th>+</th><td>0</td><td>1</td><td>2</td><td>3</td><td>5</td><td>6</td><td>0</td><td>1</td><td>3</td><td>4</td></tr>
+                        <tr><th>r</th><td>10</td><td>11</td><td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td></tr>
+                        <tr><th>+</th><td>5</td><td>6</td><td>1</td><td>2</td><td>3</td><td>4</td><td>6</td><td>0</td><td>1</td><td>2</td></tr>
                     </table>
                 </div>
             </div>
-
             <div class="hint-section">
-                <button id="mobileCenturyHintBtn" class="hint-btn">Century Anchors</button>
+                <button id="mobileCenturyHintBtn" class="hint-btn">Century</button>
                 <div id="mobileCenturyHintDropdown" class="hint-dropdown">
+                    <div class="hint-title">Century anchors</div>
                     <table class="hint-table">
-                        <tr><th>Century</th><th>Value</th><th>Anchor Day</th></tr>
-                        <tr><td>1600s</td><td>2</td><td>Tuesday</td></tr>
-                        <tr><td>1700s</td><td>0</td><td>Sunday</td></tr>
-                        <tr><td>1800s</td><td>5</td><td>Friday</td></tr>
-                        <tr><td>1900s</td><td>3</td><td>Wednesday</td></tr>
-                        <tr><td>2000s</td><td>2</td><td>Tuesday</td></tr>
-                        <tr><td>2100s</td><td>0</td><td>Sunday</td></tr>
+                        <tr><th>1600</th><td>2</td><th>2000</th><td>2</td></tr>
+                        <tr><th>1700</th><td>0</td><th>2100</th><td>0</td></tr>
+                        <tr><th>1800</th><td>5</td><th>&nbsp;</th><td>&nbsp;</td></tr>
+                        <tr><th>1900</th><td>3</td><th>&nbsp;</th><td>&nbsp;</td></tr>
                     </table>
                 </div>
             </div>
@@ -277,21 +199,21 @@
             <h2>Settings</h2>
             <div class="settings-form">
                 <div class="form-group">
-                    <label for="startYear">Start Year:</label>
+                    <label for="startYear">Start Year</label>
                     <input type="number" id="startYear" min="1" max="9999" value="1700">
                 </div>
                 <div class="form-group">
-                    <label for="endYear">End Year:</label>
+                    <label for="endYear">End Year</label>
                     <input type="number" id="endYear" min="1" max="9999" value="2030">
                 </div>
                 <div class="form-group checkbox-group">
                     <label for="dateDisappear">
                         <input type="checkbox" id="dateDisappear">
-                        Date Disappear
+                        Date disappears after a delay
                     </label>
                 </div>
                 <div class="form-group">
-                    <label for="fadeDelay">Fade Delay (seconds):</label>
+                    <label for="fadeDelay">Fade Delay (seconds)</label>
                     <input type="number" id="fadeDelay" min="1" max="60" value="3" step="0.5">
                 </div>
                 <div class="modal-buttons">
