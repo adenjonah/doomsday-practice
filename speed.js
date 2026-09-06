@@ -257,9 +257,10 @@ class SpeedGames {
             return;
         }
         if (!this.gameId) return;
-        if (e.key >= '0' && e.key <= '6') {
+        // 1–6 answer themselves; both 7 and 0 answer 0.
+        if (e.key >= '0' && e.key <= '7') {
             e.preventDefault();
-            this.answer(parseInt(e.key, 10));
+            this.answer(e.key === '7' ? 0 : parseInt(e.key, 10));
         }
     }
 
