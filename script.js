@@ -766,11 +766,12 @@ class DoomsdayQuiz {
             case '6': // Saturday
             case '7': // Sunday
             case '0': // Sunday (alternative)
+            case '`': // Sunday (alternative)
                 e.preventDefault();
                 // Only allow if answer buttons are enabled and question is active
                 if (this.answerButtons.style.display === 'block' && !this.dayButtons[0].disabled) {
                     let dayIndex;
-                    if (key === '0') {
+                    if (key === '0' || key === '`') {
                         dayIndex = 6; // Sunday (0 maps to index 6)
                     } else {
                         dayIndex = parseInt(key) - 1; // Convert 1-7 to 0-6

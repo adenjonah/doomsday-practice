@@ -257,8 +257,11 @@ class SpeedGames {
             return;
         }
         if (!this.gameId) return;
-        // 1–6 answer themselves; both 7 and 0 answer 0.
-        if (e.key >= '0' && e.key <= '7') {
+        // 1–6 answer themselves; 7, 0, and ` all answer 0.
+        if (e.key === '`') {
+            e.preventDefault();
+            this.answer(0);
+        } else if (e.key >= '0' && e.key <= '7') {
             e.preventDefault();
             this.answer(e.key === '7' ? 0 : parseInt(e.key, 10));
         }
